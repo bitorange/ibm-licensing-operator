@@ -416,7 +416,6 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 				return reconcile.Result{}, err
 			}
 			// Created successfully - return and requeue
-			time.Sleep(13 * time.Second)
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
