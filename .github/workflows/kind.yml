@@ -106,6 +106,7 @@ jobs:
     - name: Test Operator
       run: |
         export PATH=`pwd`:$PATH
+        export namespace=ibm-common-services-$RANDOM
         bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
        
     - name: Archive logs

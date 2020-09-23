@@ -15,8 +15,9 @@
 # limitations under the License.
 #
 
-@test "Create namespace ibm-common-services" {
-  kubectl create namespace ibm-common-services
+@test "Create namespace $namespace" {
+  echo Create namespace $namespace >&3
+  kubectl create namespace $namespace
   [ "$?" -eq 0 ]
 }
 
@@ -32,18 +33,24 @@
   kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
   [ "$?" -eq 0 ]
 
-  kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services
+  kubectl apply -f ./deploy/service_account.yaml -n $namespace
+  [ "$?" -eq 0 ]
+
+  sed -i "s/ibm-common-services/$namespace/g" ./deploy/role.yaml
   [ "$?" -eq 0 ]
 
   kubectl apply -f ./deploy/role.yaml
   [ "$?" -eq 0 ]
 
-  kubectl apply -f ./deploy/role_binding.yaml 
+  sed -i "s/ibm-common-services/$namespace/g" ./deploy/role_binding.yaml
+  [ "$?" -eq 0 ]
+
+  kubectl apply -f ./deploy/role_binding.yaml
   [ "$?" -eq 0 ]
 }
 
 @test "Run Operator in backgroud" {
-  operator-sdk run --watch-namespace ibm-common-services --local > operator-sdk_logs.txt 2>&1 &
+  operator-sdk run --watch-namespace $namespace --local > operator-sdk_logs.txt 2>&1 &
 }
 
 @test "List all POD in cluster" {
@@ -51,12 +58,12 @@
   [ "$results" -gt 0 ]
 }
 
-@test "Wait 12s for checking pod in ibm-common-services. List should be empty" {
+@test "Wait 12s for checking pod in $namespace. List should be empty" {
   echo "Checking if License Service pod is deleted" >&3
   retries=4
-  results="$(kubectl get pods -n ibm-common-services | wc -l)"
+  results="$(kubectl get pods -n $namespace | wc -l)"
   until [[ $retries == 0 || $results -eq "0" ]]; do
-    results="$(kubectl get pods -n ibm-common-services | wc -l)"
+    results="$(kubectl get pods -n $namespace | wc -l)"
     retries=$((retries - 1))
     sleep 3
   done
@@ -74,7 +81,7 @@ cat <<EOF | kubectl apply -f -
     datasource: datacollector
     httpsEnable: true
     imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-    instanceNamespace: ibm-common-services
+    instanceNamespace: $namespace
 EOF
   [ "$?" -eq "0" ]
 }
@@ -93,7 +100,7 @@ EOF
     sleep $retries_wait
     retries=$((retries - 1))
   done
-  kubectl get pods -n ibm-common-services >&3
+  kubectl get pods -n $namespace >&3
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [[ $new_ibmlicensing_phase == "Running" ]]
 }
@@ -108,9 +115,9 @@ EOF
   retries_start=80
   retries=$retries_start
   retries_wait=3
-  results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
+  results="$(kubectl get pods -n $namespace | grep ibm-licensing-service-instance | wc -l)"
   until [[ $retries == 0 || $results -eq "0" ]]; do
-    results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
+    results="$(kubectl get pods -n $namespace | grep ibm-licensing-service-instance | wc -l)"
     retries=$((retries - 1))
     sleep $retries_wait
   done
