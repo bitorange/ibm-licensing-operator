@@ -263,11 +263,11 @@ build-push-image-development: build-image-development push-image-development
 
 build-image-development: build
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f build/Dockerfile .
+	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f build/Dockerfile .
 
 push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 
 ##@ SHA Digest section
