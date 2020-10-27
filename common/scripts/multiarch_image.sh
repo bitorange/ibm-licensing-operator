@@ -37,7 +37,7 @@ do
     for i in $(seq 1 "${MAX_PULLING_RETRY}")
     do
         echo "Checking image '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'..."
-        ${CONTAINER_CLI} manifest inspect "${IMAGE_REPO}"/"${IMAGE_NAME}"-"${arch}":"${VERSION}" && break
+        ${CONTAINER_CLI} manifest inspect --verbose "${IMAGE_REPO}"/"${IMAGE_NAME}"-"${arch}":"${VERSION}" && break
         sleep "${RETRY_INTERVAL}"
         if [ "${i}" -eq "${MAX_PULLING_RETRY}" ]; then
             echo "Failed to found image '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'!!!"
@@ -45,6 +45,11 @@ do
         fi
     done
 done
+echo "START before creating manifest, check if somethink exists"
+${CONTAINER_CLI} manifest inspect --verbose "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
+${CONTAINER_CLI} manifest inspect --verbose "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
+echo "END before creating manifest, check if somethink exists"
+
 
 # create multi-arch manifest
 echo "Creating the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}..."
@@ -58,10 +63,10 @@ ${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":latest \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-ppc64le:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-s390x:"${VERSION}"
 
-
-${CONTAINER_CLI} manifest inspect "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
-${CONTAINER_CLI} manifest inspect "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
-
+echo "START after creating manifest, check if somethink exists"
+${CONTAINER_CLI} manifest inspect --verbose "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
+${CONTAINER_CLI} manifest inspect --verbose "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
+echo "END after creating manifest, check if somethink exists"
 # push multi-arch manifest
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}..."
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
