@@ -58,6 +58,10 @@ ${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":latest \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-ppc64le:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-s390x:"${VERSION}"
 
+
+${CONTAINER_CLI} manifest inspect "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
+${CONTAINER_CLI} manifest inspect "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
+
 # push multi-arch manifest
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}..."
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
