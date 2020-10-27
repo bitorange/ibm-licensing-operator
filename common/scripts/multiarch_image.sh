@@ -69,6 +69,6 @@ ${CONTAINER_CLI} manifest inspect --verbose "${IMAGE_REPO}"/"${IMAGE_NAME}":late
 echo "END after creating manifest, check if somethink exists"
 # push multi-arch manifest
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}..."
-${CONTAINER_CLI} manifest push  --verbose  "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
+${CONTAINER_CLI} manifest push    "${IMAGE_REPO}"/"${IMAGE_NAME}":"${RELEASE_VERSION}"
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:latest..."
-${CONTAINER_CLI} manifest push  --verbose  "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
+${CONTAINER_CLI} manifest push    "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
