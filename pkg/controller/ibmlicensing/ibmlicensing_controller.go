@@ -24,6 +24,7 @@ import (
 
 	"github.com/go-logr/logr"
 
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	"github.com/ibm/ibm-licensing-operator/pkg/resources/service"
@@ -82,6 +83,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 		&appsv1.Deployment{},
 		&corev1.Service{},
+		&monitoringv1.ServiceMonitor{},
+		&extensionsv1.NetworkPolicy{},
 	})
 	if err != nil {
 		return err
@@ -160,9 +163,11 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileUploadToken,
 		r.reconcileUploadConfigMap,
 		r.reconcileServices,
+		r.reconcileServiceMonitor,
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRoute,
+		r.reconcileNetworkPolicy,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -273,6 +278,38 @@ func (r *ReconcileIBMLicensing) reconcileServices(instance *operatorv1alpha1.IBM
 			return result, err
 		}
 		result, err = res.UpdateServiceIfNeeded(&reqLogger, r.client, es, foundService)
+	}
+
+	return result, err
+}
+
+func (r *ReconcileIBMLicensing) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	var (
+		result reconcile.Result
+		err    error
+	)
+	reqLogger := log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
+	expectedServiceMonitor := service.GetServiceMonitor(instance)
+	foundServiceMonitor := &monitoringv1.ServiceMonitor{}
+	result, err = r.reconcileResourceNamespacedExistence(instance, expectedServiceMonitor, foundServiceMonitor)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	result, err = res.UpdateServiceMonitor(&reqLogger, r.client, expectedServiceMonitor, foundServiceMonitor)
+
+	return result, err
+}
+
+func (r *ReconcileIBMLicensing) reconcileNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	var (
+		result reconcile.Result
+		err    error
+	)
+	expected := service.GetNetworkPolicy(instance)
+	found := &extensionsv1.NetworkPolicy{}
+	result, err = r.reconcileResourceNamespacedExistence(instance, expected, found)
+	if err != nil || result.Requeue {
+		return result, err
 	}
 
 	return result, err
